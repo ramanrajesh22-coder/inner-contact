@@ -244,19 +244,20 @@
     display: block;
     width: 100%;
     margin-top: 14px;
-    padding: 11px;
+    padding: 15px;
     font-family: 'DM Sans', sans-serif;
-    font-size: 13px;
-    font-weight: 400;
-    color: var(--stone);
-    background: transparent;
-    border: 1px solid #ddd9d0;
-    border-radius: var(--radius-sm);
+    font-size: 16px;
+    font-weight: 500;
+    color: #fff;
+    background: #e05a3a;
+    border: none;
+    border-radius: var(--radius);
     cursor: pointer;
     -webkit-appearance: none;
-    transition: background 0.15s;
+    transition: background 0.15s, transform 0.1s;
+    letter-spacing: 0.2px;
   }
-  .reset-btn:active { background: #eeebe4; }
+  .reset-btn:active { background: #c44a2c; transform: scale(0.98); }
 
   /* Modal */
   .modal-overlay {
@@ -471,6 +472,7 @@
     water: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2C6 9 4 13 4 16a8 8 0 0016 0c0-3-2-7-8-14z"/></svg>',
     food:  '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M8 12h8"/><path d="M12 8v8"/></svg>',
     urine: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12l2 6H4z"/><path d="M4 9c0 5 2 9 8 12 6-3 8-7 8-12"/></svg>',
+    bath:  '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h16v3a4 4 0 01-4 4H8a4 4 0 01-4-4v-3z"/><path d="M6 12V6a2 2 0 012-2h1v2"/><path d="M4 19l-1 2"/><path d="M20 19l1 2"/></svg>',
   };
 
   const TASKS = [
@@ -478,6 +480,7 @@
     { id: 'water', name: 'Drinking Water'},
     { id: 'food',  name: 'Eating Food'   },
     { id: 'urine', name: 'Urination'     },
+    { id: 'bath',  name: 'Bath'          },
   ];
 
   let activeTask = null;
