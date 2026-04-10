@@ -239,6 +239,7 @@
   .num-yes { color: var(--sage-deep); font-weight: 500; }
   .num-no  { color: var(--amber); font-weight: 500; }
   .num-total { color: var(--ink); font-weight: 500; }
+  .num-avg { color: var(--sage); font-weight: 500; }
 
   .reset-btn {
     display: block;
@@ -418,6 +419,7 @@
           <th>Total</th>
           <th>With</th>
           <th>Without</th>
+          <th>Avg %</th>
         </tr>
       </thead>
       <tbody id="actBody"></tbody>
@@ -473,6 +475,7 @@
     food:  '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M8 12h8"/><path d="M12 8v8"/></svg>',
     urine: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12l2 6H4z"/><path d="M4 9c0 5 2 9 8 12 6-3 8-7 8-12"/></svg>',
     bath:  '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h16v3a4 4 0 01-4 4H8a4 4 0 01-4-4v-3z"/><path d="M6 12V6a2 2 0 012-2h1v2"/><path d="M4 19l-1 2"/><path d="M20 19l1 2"/></svg>',
+    shit:  '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3c0 0-2 2-2 4s2 2 2 4-2 2-2 4"/><path d="M8 7c0 0-2 1-2 3s2 2 2 4"/><path d="M16 7c0 0 2 1 2 3s-2 2-2 4"/><ellipse cx="12" cy="19" rx="5" ry="2"/></svg>',
   };
 
   const TASKS = [
@@ -481,6 +484,7 @@
     { id: 'food',  name: 'Eating Food'   },
     { id: 'urine', name: 'Urination'     },
     { id: 'bath',  name: 'Bath'          },
+    { id: 'shit',  name: 'Shitting'      },
   ];
 
   let activeTask = null;
@@ -524,18 +528,21 @@
 
     // Activity summary table
     const actBody = document.getElementById('actBody');
-    let grandTotal = 0, grandYes = 0, grandNo = 0;
+    let grandTotal = 0, grandYes = 0, grandNo = 0, grandSatSum = 0;
     actBody.innerHTML = TASKS.map(t => {
       const tEntries = d.entries.filter(e => e.taskId === t.id);
       const tTotal = tEntries.length;
       const tYes = tEntries.filter(e => e.answer).length;
       const tNo = tTotal - tYes;
+      const tAvg = tTotal > 0 ? Math.round(tEntries.reduce((s, e) => s + e.satisfaction, 0) / tTotal) : '-';
       grandTotal += tTotal; grandYes += tYes; grandNo += tNo;
+      grandSatSum += tEntries.reduce((s, e) => s + e.satisfaction, 0);
       return `<tr>
         <td><div class="act-icon-name"><span class="act-svg">${TASK_ICONS[t.id]}</span><span>${t.name}</span></div></td>
         <td class="num-total">${tTotal}</td>
         <td class="num-yes">${tYes}</td>
         <td class="num-no">${tNo}</td>
+        <td class="num-avg">${tTotal > 0 ? tAvg + '%' : '-'}</td>
       </tr>`;
     }).join('') +
     `<tr class="total-row">
@@ -543,6 +550,7 @@
       <td class="num-total">${grandTotal}</td>
       <td class="num-yes">${grandYes}</td>
       <td class="num-no">${grandNo}</td>
+      <td class="num-avg">${grandTotal > 0 ? Math.round(grandSatSum / grandTotal) + '%' : '-'}</td>
     </tr>`;
 
     // Log
