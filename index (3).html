@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Inner Contact">
+<title>Inner Contact</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+  :root {
+    --sage: #4a7c6b;
+    --sage-light: #e8f2ee;
+    --sage-deep: #2d5244;
+    --amber: #c47c3e;
+    --amber-light: #faf0e4;
+    --stone: #8a8478;
+    --stone-light: #f4f2ee;
+    --ink: #2a2520;
+    --paper: #fdfcf8;
+    --paper-warm: #f7f4ef;
+    --radius: 18px;
+    --radius-sm: 10px;
+  }
+
+  html, body {
+    height: 100%;
+    background: var(--paper);
+    font-family: 'DM Sans', sans-serif;
+    color: var(--ink);
+    overscroll-behavior: none;
+  }
+
+  body {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    min-height: -webkit-fill-available;
+  }
+
+  .app {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    max-width: 420px;
+    margin: 0 auto;
+    width: 100%;
+    padding: env(safe-area-inset-top, 16px) 20px env(safe-area-inset-bottom, 20px);
+    padding-top: max(env(safe-area-inset-top), 20px);
+  }
+
+  .header {
+    text-align: center;
+    padding: 12px 0 20px;
+  }
+  .header h1 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 32px;
+    font-weight: 400;
+    color: var(--ink);
+    letter-spacing: -0.3px;
+  }
+  .header .date-str {
+    font-size: 15px;
+    color: var(--stone);
+    font-weight: 300;
+    margin-top: 3px;
+    letter-spacing: 0.3px;
+  }
+
+  .section-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--stone);
+    font-weight: 400;
+    margin-bottom: 10px;
+  }
+
+  .task-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+  .task-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 18px 10px;
+    background: var(--paper-warm);
+    border: 1px solid #ebe7df;
+    border-radius: var(--radius);
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    transition: background 0.15s, transform 0.1s, border-color 0.15s;
+    -webkit-appearance: none;
+  }
+  .task-btn:active { transform: scale(0.97); background: var(--sage-light); border-color: #c8ddd7; }
+  .task-btn .task-icon { width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; color: var(--sage); }
+  .task-btn .task-icon svg { width: 28px; height: 28px; }
+  .task-btn .task-name {
+    font-size: 16px;
+    font-weight: 500;
+    color: var(--ink);
+    text-align: center;
+  }
+  .task-btn .task-count {
+    font-size: 13px;
+    color: var(--stone);
+    font-weight: 300;
+  }
+
+  .stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+  .stat {
+    background: var(--paper-warm);
+    border: 1px solid #ebe7df;
+    border-radius: var(--radius-sm);
+    padding: 14px 12px;
+    text-align: center;
+  }
+  .stat-num {
+    font-family: 'DM Serif Display', serif;
+    font-size: 42px;
+    line-height: 1;
+  }
+  .stat-num.yes { color: var(--sage); }
+  .stat-num.no  { color: var(--amber); }
+  .stat-lbl {
+    font-size: 13px;
+    color: var(--stone);
+    font-weight: 300;
+    margin-top: 4px;
+    letter-spacing: 0.2px;
+  }
+
+  .log-section { flex: 1; display: flex; flex-direction: column; min-height: 0; }
+  .log-header {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--stone);
+    font-weight: 400;
+    margin-bottom: 8px;
+  }
+  .log-scroll {
+    flex: 1;
+    overflow-y: auto;
+    border: 1px solid #ebe7df;
+    border-radius: var(--radius-sm);
+    background: var(--paper-warm);
+    max-height: 190px;
+    -webkit-overflow-scrolling: touch;
+  }
+  .log-empty {
+    padding: 28px 16px;
+    text-align: center;
+    font-size: 13px;
+    color: var(--stone);
+    font-weight: 300;
+    font-style: italic;
+  }
+  .log-item {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    padding: 9px 14px;
+    border-bottom: 1px solid #ebe7df;
+  }
+  .log-item:last-child { border-bottom: none; }
+  .log-n { font-size: 13px; color: var(--stone); min-width: 16px; font-weight: 300; }
+  .log-icon { width: 18px; height: 18px; display: flex; align-items: center; color: var(--stone); }
+  .log-icon svg { width: 16px; height: 16px; }
+  .log-task { font-size: 14px; color: var(--ink); font-weight: 500; flex: 1; }
+  .log-time { font-size: 13px; color: var(--stone); font-weight: 300; }
+  .log-sat { font-size: 13px; color: var(--stone); font-weight: 400; min-width: 34px; text-align: right; }
+  .badge {
+    font-size: 12px;
+    font-weight: 500;
+    padding: 3px 11px;
+    border-radius: 20px;
+  }
+  .badge.yes { background: var(--sage-light); color: var(--sage-deep); }
+  .badge.no  { background: var(--amber-light); color: #7a4b1e; }
+
+  /* Activity summary table */
+  .activity-summary {
+    margin-bottom: 16px;
+  }
+  .act-table {
+    width: 100%;
+    border: 1px solid #ebe7df;
+    border-radius: var(--radius-sm);
+    background: var(--paper-warm);
+    border-collapse: separate;
+    border-spacing: 0;
+    overflow: hidden;
+  }
+  .act-table thead tr {
+    background: var(--stone-light);
+  }
+  .act-table th {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: var(--stone);
+    font-weight: 400;
+    padding: 10px 10px;
+    text-align: center;
+  }
+  .act-table th:first-child { text-align: left; }
+  .act-table td {
+    font-size: 14px;
+    padding: 11px 10px;
+    text-align: center;
+    color: var(--ink);
+    border-top: 1px solid #ebe7df;
+  }
+  .act-table td:first-child { text-align: left; }
+  .act-table tr.total-row td {
+    background: var(--stone-light);
+    font-weight: 500;
+    font-size: 12px;
+    border-top: 1px solid #ddd9d0;
+  }
+  .act-icon-name { display: flex; align-items: center; gap: 6px; }
+  .act-icon-name span:first-child { font-size: 14px; }
+  .num-yes { color: var(--sage-deep); font-weight: 500; }
+  .num-no  { color: var(--amber); font-weight: 500; }
+  .num-total { color: var(--ink); font-weight: 500; }
+
+  .reset-btn {
+    display: block;
+    width: 100%;
+    margin-top: 14px;
+    padding: 11px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 400;
+    color: var(--stone);
+    background: transparent;
+    border: 1px solid #ddd9d0;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    -webkit-appearance: none;
+    transition: background 0.15s;
+  }
+  .reset-btn:active { background: #eeebe4; }
+
+  /* Modal */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(42, 37, 32, 0.4);
+    z-index: 100;
+    align-items: flex-end;
+    justify-content: center;
+  }
+  .modal-overlay.active { display: flex; }
+  .modal-sheet {
+    background: var(--paper);
+    border-radius: 24px 24px 0 0;
+    padding: 28px 24px calc(env(safe-area-inset-bottom) + 28px);
+    width: 100%;
+    max-width: 420px;
+    text-align: center;
+    animation: slideUp 0.25s ease;
+  }
+  @keyframes slideUp {
+    from { transform: translateY(100%); }
+    to   { transform: translateY(0); }
+  }
+  .modal-pill {
+    width: 36px; height: 4px;
+    background: #ddd; border-radius: 2px;
+    margin: 0 auto 20px;
+  }
+  .modal-task-icon { width: 48px; height: 48px; margin: 0 auto 6px; display: flex; align-items: center; justify-content: center; color: var(--sage); }
+  .modal-task-icon svg { width: 40px; height: 40px; }
+  .act-svg { display: flex; align-items: center; color: var(--stone); }
+  .act-svg svg { width: 14px; height: 14px; }
+  .modal-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 22px; font-weight: 400; margin-bottom: 4px;
+  }
+  .modal-sub {
+    font-size: 14px; color: var(--stone); font-weight: 300;
+    margin-bottom: 22px; line-height: 1.5;
+  }
+
+  /* Satisfaction slider */
+  .sat-section { margin-bottom: 22px; text-align: left; }
+  .sat-label-row {
+    display: flex; justify-content: space-between;
+    align-items: baseline; margin-bottom: 10px;
+  }
+  .sat-label { font-size: 13px; color: var(--stone); font-weight: 300; }
+  .sat-value {
+    font-family: 'DM Serif Display', serif;
+    font-size: 22px; color: var(--sage-deep);
+  }
+  .sat-slider {
+    -webkit-appearance: none;
+    width: 100%; height: 5px;
+    border-radius: 3px; background: #ddd9d0; outline: none;
+  }
+  .sat-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 26px; height: 26px; border-radius: 50%;
+    background: var(--sage); cursor: pointer;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.15);
+  }
+  .sat-slider::-moz-range-thumb {
+    width: 26px; height: 26px; border-radius: 50%;
+    background: var(--sage); cursor: pointer; border: none;
+  }
+  .sat-hints { display: flex; justify-content: space-between; margin-top: 5px; }
+  .sat-hints span { font-size: 10px; color: var(--stone); font-weight: 300; }
+
+  .modal-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .modal-btns button {
+    padding: 15px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 16px; font-weight: 500;
+    border: none; border-radius: var(--radius-sm);
+    cursor: pointer; -webkit-appearance: none;
+    transition: transform 0.1s;
+  }
+  .modal-btns button:active { transform: scale(0.97); }
+  .btn-yes { background: var(--sage); color: #fff; }
+  .btn-no  { background: var(--amber); color: #fff; }
+
+  /* Confirm reset */
+  .confirm-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(42, 37, 32, 0.4); z-index: 200;
+    align-items: flex-end; justify-content: center;
+  }
+  .confirm-overlay.active { display: flex; }
+  .confirm-sheet {
+    background: var(--paper);
+    border-radius: 24px 24px 0 0;
+    padding: 24px 24px calc(env(safe-area-inset-bottom) + 24px);
+    width: 100%; max-width: 420px;
+    text-align: center; animation: slideUp 0.25s ease;
+  }
+  .confirm-sheet p { font-size: 15px; color: var(--ink); margin-bottom: 20px; line-height: 1.5; }
+  .confirm-sheet p span { font-weight: 500; }
+  .confirm-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .confirm-btns button {
+    padding: 13px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px; font-weight: 400;
+    border-radius: var(--radius-sm);
+    cursor: pointer; -webkit-appearance: none;
+    transition: transform 0.1s;
+  }
+  .confirm-btns button:active { transform: scale(0.97); }
+  .btn-cancel { background: var(--stone-light); color: var(--ink); border: 1px solid #ddd9d0; }
+  .btn-confirm-reset { background: #e05a3a; color: #fff; border: none; }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <div class="header">
+    <h1>Inner Contact</h1>
+    <div class="date-str" id="dateStr"></div>
+  </div>
+
+
+
+
+
+    </div>
+  </div>
+
+  <div class="section-label">Log a task</div>
+  <div class="task-grid" id="taskGrid"></div>
+
+  <div class="stats">
+    <div class="stat">
+      <div class="stat-num yes" id="yesNum">0</div>
+      <div class="stat-lbl">With inner contact</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num no" id="noNum">0</div>
+      <div class="stat-lbl">Without inner contact</div>
+    </div>
+  </div>
+
+  <div class="log-section">
+    <div class="log-header">Today's log</div>
+    <div class="log-scroll" id="logScroll">
+      <div class="log-empty" id="logEmpty">No entries yet today</div>
+    </div>
+  </div>
+
+  <div class="activity-summary">
+    <div class="log-header" style="margin-bottom:8px;">Activity summary</div>
+    <table class="act-table" id="actTable">
+      <thead>
+        <tr>
+          <th>Activity</th>
+          <th>Total</th>
+          <th>With</th>
+          <th>Without</th>
+        </tr>
+      </thead>
+      <tbody id="actBody"></tbody>
+    </table>
+  </div>
+
+  <button class="reset-btn" onclick="openConfirm()">Reset today's count</button>
+</div>
+
+<!-- Task modal -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal-sheet">
+    <div class="modal-pill"></div>
+    <div class="modal-task-icon" id="modalIcon"></div>
+    <div class="modal-title" id="modalTitle"></div>
+    <div class="modal-sub">Was this done with inner contact?</div>
+    <div class="sat-section">
+      <div class="sat-label-row">
+        <span class="sat-label">Satisfaction</span>
+        <span class="sat-value" id="satDisplay">50%</span>
+      </div>
+      <input type="range" class="sat-slider" id="satSlider"
+        min="0" max="100" step="1" value="50"
+        oninput="updateSat(this.value)">
+      <div class="sat-hints">
+        <span>0%</span><span>50%</span><span>100%</span>
+      </div>
+    </div>
+    <div class="modal-btns">
+      <button class="btn-yes" onclick="recordAnswer(true)">Yes</button>
+      <button class="btn-no"  onclick="recordAnswer(false)">No</button>
+    </div>
+  </div>
+</div>
+
+<!-- Confirm reset -->
+<div class="confirm-overlay" id="confirmOverlay">
+  <div class="confirm-sheet">
+    <p>Reset <span>all entries</span> for today?<br>This cannot be undone.</p>
+    <div class="confirm-btns">
+      <button class="btn-cancel" onclick="closeConfirm()">Cancel</button>
+      <button class="btn-confirm-reset" onclick="doReset()">Reset</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  const KEY = 'innerContactData_v3';
+
+  const TASK_ICONS = {
+    brush: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v10"/><path d="M9 6h6"/><rect x="8" y="12" width="8" height="8" rx="2"/><path d="M10 20v2"/><path d="M14 20v2"/></svg>',
+    water: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2C6 9 4 13 4 16a8 8 0 0016 0c0-3-2-7-8-14z"/></svg>',
+    food:  '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M8 12h8"/><path d="M12 8v8"/></svg>',
+    urine: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12l2 6H4z"/><path d="M4 9c0 5 2 9 8 12 6-3 8-7 8-12"/></svg>',
+  };
+
+  const TASKS = [
+    { id: 'brush', name: 'Brushing'      },
+    { id: 'water', name: 'Drinking Water'},
+    { id: 'food',  name: 'Eating Food'   },
+    { id: 'urine', name: 'Urination'     },
+  ];
+
+  let activeTask = null;
+
+  function loadData() {
+    try {
+      const raw = localStorage.getItem(KEY);
+      if (!raw) return fresh();
+      return JSON.parse(raw);
+    } catch(e) { return fresh(); }
+  }
+
+  function fresh() { return { entries: [] }; }
+
+  function saveData(d) {
+    try { localStorage.setItem(KEY, JSON.stringify(d)); } catch(e) {}
+  }
+
+  function render() {
+    const d = loadData();
+    const total = d.entries.length;
+    const yes = d.entries.filter(e => e.answer).length;
+    const no = total - yes;
+
+    document.getElementById('yesNum').textContent = yes;
+    document.getElementById('noNum').textContent = no;
+    document.getElementById('dateStr').textContent = new Date().toLocaleDateString('en-SG', {
+      weekday: 'long', day: 'numeric', month: 'long', timeZone: 'Asia/Singapore'
+    });
+
+    // Task grid
+    const grid = document.getElementById('taskGrid');
+    grid.innerHTML = TASKS.map(t => {
+      const count = d.entries.filter(e => e.taskId === t.id).length;
+      return `<button class="task-btn" onclick="openModal('${t.id}')">
+        <span class="task-icon">${TASK_ICONS[t.id]}</span>
+        <span class="task-name">${t.name}</span>
+        <span class="task-count">${count > 0 ? count + 'x today' : 'Tap to log'}</span>
+      </button>`;
+    }).join('');
+
+    // Activity summary table
+    const actBody = document.getElementById('actBody');
+    let grandTotal = 0, grandYes = 0, grandNo = 0;
+    actBody.innerHTML = TASKS.map(t => {
+      const tEntries = d.entries.filter(e => e.taskId === t.id);
+      const tTotal = tEntries.length;
+      const tYes = tEntries.filter(e => e.answer).length;
+      const tNo = tTotal - tYes;
+      grandTotal += tTotal; grandYes += tYes; grandNo += tNo;
+      return `<tr>
+        <td><div class="act-icon-name"><span class="act-svg">${TASK_ICONS[t.id]}</span><span>${t.name}</span></div></td>
+        <td class="num-total">${tTotal}</td>
+        <td class="num-yes">${tYes}</td>
+        <td class="num-no">${tNo}</td>
+      </tr>`;
+    }).join('') +
+    `<tr class="total-row">
+      <td>Total</td>
+      <td class="num-total">${grandTotal}</td>
+      <td class="num-yes">${grandYes}</td>
+      <td class="num-no">${grandNo}</td>
+    </tr>`;
+
+    // Log
+    const scroll = document.getElementById('logScroll');
+    const empty  = document.getElementById('logEmpty');
+    Array.from(scroll.querySelectorAll('.log-item')).forEach(el => el.remove());
+
+    if (total === 0) {
+      empty.style.display = 'block';
+    } else {
+      empty.style.display = 'none';
+      d.entries.slice().reverse().forEach((e, i) => {
+        const idx = total - i;
+        const task = TASKS.find(t => t.id === e.taskId) || { name: 'Task', id: 'brush' };
+        const div = document.createElement('div');
+        div.className = 'log-item';
+        div.innerHTML =
+          `<span class="log-n">${idx}</span>` +
+          `<span class="log-icon">${TASK_ICONS[task.id] || ''}</span>` +
+          `<span class="log-task">${task.name}</span>` +
+          `<span class="log-time">${e.time}</span>` +
+          `<span class="log-sat">${e.satisfaction}%</span>` +
+          `<span class="badge ${e.answer ? 'yes' : 'no'}">${e.answer ? 'Yes' : 'No'}</span>`;
+        scroll.appendChild(div);
+      });
+    }
+  }
+
+  function updateSat(val) {
+    document.getElementById('satDisplay').textContent = Math.round(val) + '%';
+  }
+
+  function openModal(taskId) {
+    activeTask = TASKS.find(t => t.id === taskId);
+    document.getElementById('modalIcon').innerHTML = TASK_ICONS[activeTask.id];
+    document.getElementById('modalTitle').textContent = activeTask.name;
+    document.getElementById('satSlider').value = 50;
+    document.getElementById('satDisplay').textContent = '50%';
+    document.getElementById('modalOverlay').classList.add('active');
+  }
+
+  function closeModal() {
+    document.getElementById('modalOverlay').classList.remove('active');
+    activeTask = null;
+  }
+
+  function recordAnswer(ans) {
+    if (!activeTask) return;
+    const d = loadData();
+    const sat = parseInt(document.getElementById('satSlider').value);
+    const now = new Date().toLocaleTimeString('en-SG', {
+      hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Singapore'
+    });
+    d.entries.push({ taskId: activeTask.id, answer: ans, satisfaction: sat, time: now });
+    saveData(d);
+    closeModal();
+    render();
+  }
+
+  function openConfirm() {
+    document.getElementById('confirmOverlay').classList.add('active');
+  }
+  function closeConfirm() {
+    document.getElementById('confirmOverlay').classList.remove('active');
+  }
+  function doReset() {
+    saveData(fresh());
+    closeConfirm();
+    render();
+  }
+
+  document.getElementById('modalOverlay').addEventListener('click', function(e) {
+    if (e.target === this) closeModal();
+  });
+  document.getElementById('confirmOverlay').addEventListener('click', function(e) {
+    if (e.target === this) closeConfirm();
+  });
+
+  render();
+</script>
+</body>
+</html>
